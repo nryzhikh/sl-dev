@@ -64,12 +64,20 @@ const IosSection = ({ isFromTable }: { isFromTable: boolean }) => {
         />
       ) : (
         <>
+          {/* <FormFieldArray
+            fieldName="ios_apps_dp"
+            label="Deeplink или ссылка на страницу сайта"
+            removeSpaces={true}
+            isFromTable={isFromTable}
+          /> */}
           <FormFieldArray
             fieldName="ios_apps_dp"
             label="Deeplink или ссылка на страницу сайта"
             removeSpaces={true}
             isFromTable={isFromTable}
+
           />
+
         </>
       )}
 
@@ -82,17 +90,17 @@ const IosSection = ({ isFromTable }: { isFromTable: boolean }) => {
         customWebLinkSwitchField="custom_web_link_ios"
       >
 
-      <FormField
-        control={control}
-        name="multi_app_ios"
-        render={({ field }) => (
-          <FormCheckBox
-            isVisible={!!isVisible}
-            field={field}
-            label="Задать последовательность из нескольких приложений iOS"
-          />
-        )}
-      />
+        <FormField
+          control={control}
+          name="multi_app_ios"
+          render={({ field }) => (
+            <FormCheckBox
+              isVisible={!!isVisible}
+              field={field}
+              label="Задать последовательность из нескольких приложений iOS"
+            />
+          )}
+        />
       </NeedWebSubSection>
 
 

@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import MenuDropdown from "@/components/data-table/menu-dropdown";
@@ -12,6 +12,10 @@ import {
 import { TableData } from "@/components/data-table/DataTable";
 import DetailsPopoverContent from "./details-popover";
 import { SparkAreaChart } from "@tremor/react";
+// import UrlStatusCheck from "@/components/data-table/url-status-checker";
+import { Link2Icon } from "@radix-ui/react-icons";
+import { Badge } from "@/components/ui/badge"
+
 
 
 const emptyData = () => {
@@ -69,7 +73,7 @@ const columns: ColumnDef<TableData>[] = [
                     checked={table.getIsAllRowsSelected() ? true : false}
                     indeterminate={table.getIsSomeRowsSelected()}
                     onCheckedChange={(value) => table.toggleAllRowsSelected(value === true)}
-                    />
+                />
             </div>
         ),
         cell: ({ row }) => (
@@ -83,23 +87,71 @@ const columns: ColumnDef<TableData>[] = [
     },
     {
         accessorKey: "created_at",
-        size: 100,
+        size: 80,
         header: "Создан",
         cell: info => {
             const date = new Date(info.row.original.created_at);
-            return format(date, 'dd.MM.yyyy');
+            return (
+                <div className="text-sm">
+                    {format(date, 'dd.MM.yyyy')}
+                </div>
+            );
         }
     },
     {
         accessorKey: "updated_at",
-        size: 100,
+        size: 80,
 
         header: "Обновлен",
         cell: info => {
             const date = new Date(info.row.original.updated_at);
-            return format(date, 'dd.MM.yyyy');
+            return (
+                <div className="text-sm">
+                    {format(date, 'dd.MM.yyyy')}
+                </div>
+            );
         }
     },
+    {
+        accessorKey: "url_status_code",
+        size: 150,
+        header: "Статус",
+        cell: info => {
+            const status = info.getValue() as number;
+            const url = info.row.original.url;
+            
+
+            return (
+                <div>
+                    {status > 1000 ? (
+                        <div className="flex justify-center items-center gap-2">
+                        <div style={{ height: '8px', width: '8px', backgroundColor: 'red', borderRadius: '50%' }}></div>
+                        <span className="text-sm">Ошибка</span>
+                    </div>
+                    ) : !status ? (
+                        <div className="flex justify-center items-center gap-2">
+                        <div style={{ height: '8px', width: '8px', backgroundColor: 'red', borderRadius: '50%' }}></div>
+                        <span className="text-sm">На модерации</span>
+                    </div>
+                    ) : status > 199 && status < 400 ? (
+                        <div className="flex justify-center items-center gap-2">
+                            <div style={{ height: '8px', width: '8px', backgroundColor: "#10b981", borderRadius: '50%' }}></div>
+                            <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center underline">
+                                <span className="text-sm">Активен</span>
+                                <Link2Icon className="mb-1 w-3 h-3 " />
+                            </a>
+                        </div>
+                    ) : (
+                        <div className="flex justify-center items-center gap-2">
+                            <div style={{ height: '8px', width: '8px', backgroundColor: 'red', borderRadius: '50%' }}></div>
+                            <span className="text-sm">На модерации</span>
+                        </div>
+                    )}
+                </div>
+            )
+        }
+    },
+
     {
         accessorKey: "sl_name",
         size: 400,
@@ -108,9 +160,11 @@ const columns: ColumnDef<TableData>[] = [
             <div className="w-[400px] overflow-hidden">
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant="secondary" className="font-semibold rounded-lg">
+                        <button className="font-semibold rounded-lg h-6 flex justify-center items-center m-1" style={{ userSelect: "text" }}>
+                            <Badge className="h-7 w-full " variant="secondary">
                             sberbank.com/sms/{info.getValue() as string}
-                        </Button>
+                            </Badge>
+                        </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-full">
                         <DetailsPopoverContent sl_name={info.getValue() as string} />

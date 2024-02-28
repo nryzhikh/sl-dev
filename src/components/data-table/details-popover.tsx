@@ -82,8 +82,6 @@ export default function DetailsPopoverContent({ sl_name }: { sl_name: string }) 
         return null;
     }
 
-    console.log(details);
-
     return (
         <ul className="max-w-[700px] truncate xs:hidden">
             <li >
