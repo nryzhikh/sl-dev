@@ -37,7 +37,7 @@ export const verifyUser = async () => {
 }
 
 
-export const apiGetStats = async (startIndex: number, count: number, sortField: string = "updated_at", sortOrder: string = "desc", searchTerm?: string) => {
+export const apiGetStats = async (startIndex: number, count: number, sortField: string = "updated_at", sortOrder: string = "desc", searchTerm?: string, searchFields?: string) => {
   try {
     const response = await api.get('smartlinks/stats', {
       params: {
@@ -46,6 +46,7 @@ export const apiGetStats = async (startIndex: number, count: number, sortField: 
         sortField,
         sortOrder,
         searchTerm,
+        searchFields,
         timestamp: Date.now(),
       },
     });
