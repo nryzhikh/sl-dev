@@ -1,19 +1,19 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import * as z from "zod";
-import { andRegex } from "@/constants/constants";
+// import { andRegex } from "@/constants/constants";
 import { labels } from "@/constants/fieldDescriptions";
 
 const utmParamsRegex = /^[a-z0-9-_=]+$/
-const urlRegex = new RegExp(
-  "^(https?:\\/\\/)?" + // protocol
-  "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
-  "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR IP (v4) address
-  "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-  "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
-  "(\\#[-a-z\\d_]*)?$", // fragment locator
-  "i"
-);
+// const urlRegex = new RegExp(
+//   "^(https?:\\/\\/)?" + // protocol
+//   "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+//   "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR IP (v4) address
+//   "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+//   "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+//   "(\\#[-a-z\\d_]*)?$", // fragment locator
+//   "i"
+// );
 const allowedUrlRegex =
   /^(https:\/\/|http:\/\/|https:\/\/www\.|http:\/\/www\.)(sberbank\.com|sberbank\.ru|spasibosberbank\.ru|online\.sberbank\.ru|sbi\.sberbank\.ru|sberbankins\.ru|spasibosberbank\.ru)|^sberbankonline:\/\/|^sbolonline:\/\/|^btripsexpenses:\/\/|^sbermobilechat:\/\/|^sbbol:\/\/|^sberinvestor:\/\/|^newinvestor:\/\/|^investorx\.prod:\/\/|^ru\.sberbank\.sberinvestor:\/\/|^investorplus:\/\/|^sberpay:\/\/|^sbolpay:\/\/|^android-app:\/\/ru\.sberbankmobile/;
 const webUrlRegex = /^(https:\/\/|http:\/\/|https:\/\/www\.|http:\/\/www\.)(sberbank\.com|sberbank\.ru|spasibosberbank\.ru|online\.sberbank\.ru|sbi\.sberbank\.ru|sberbankins\.ru|spasibosberbank\.ru)/;
@@ -236,36 +236,36 @@ export const SmartLinkSchema = z
       }
     }
 
-    function checkRegexp(
-      field: string,
-      need: string,
-      control: string,
-      regexp: RegExp
-    ) {
-      const value = data[need as keyof typeof data];
-      if (typeof value === "string") {
-        const fieldValue = data[field as keyof typeof data];
+    // function checkRegexp(
+    //   field: string,
+    //   need: string,
+    //   control: string,
+    //   regexp: RegExp
+    // ) {
+    //   const value = data[need as keyof typeof data];
+    //   if (typeof value === "string") {
+    //     const fieldValue = data[field as keyof typeof data];
 
-        if (!regexp.test(value) && !data[control as keyof typeof data]) {
-          if (data[field as keyof typeof data] === "") {
-            refinementContext.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: "Ссылка в магазин приложений или на страницу сайта*",
-              path: [field],
-            });
-          } else if (
-            typeof fieldValue === "string" &&
-            !urlRegex.test(fieldValue)
-          ) {
-            refinementContext.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: "Ссылка в магазин приложений* - Неверный формат URL",
-              path: [field],
-            });
-          }
-        }
-      }
-    }
+    //     if (!regexp.test(value) && !data[control as keyof typeof data]) {
+    //       if (data[field as keyof typeof data] === "") {
+    //         refinementContext.addIssue({
+    //           code: z.ZodIssueCode.custom,
+    //           message: "Ссылка в магазин приложений или на страницу сайта*",
+    //           path: [field],
+    //         });
+    //       } else if (
+    //         typeof fieldValue === "string" &&
+    //         !urlRegex.test(fieldValue)
+    //       ) {
+    //         refinementContext.addIssue({
+    //           code: z.ZodIssueCode.custom,
+    //           message: "Ссылка в магазин приложений* - Неверный формат URL",
+    //           path: [field],
+    //         });
+    //       }
+    //     }
+    //   }
+    // }
 
     checkFields(
       [
@@ -287,8 +287,8 @@ export const SmartLinkSchema = z
       utmParamsRegex
     );
 
-    checkRegexp("store_link_and", "android_dp", "need_web_and", andRegex);
-    checkRegexp("store_link_ios", "ios_dp", "need_web_ios", iosRegex);
+    // checkRegexp("store_link_and", "android_dp", "need_web_and", andRegex);
+    // checkRegexp("store_link_ios", "ios_dp", "need_web_ios", iosRegex);
   });
 
 export const SmartlinkFormSchema = (s3Keys: string[], isFromTable: boolean, disabled: boolean ) => {

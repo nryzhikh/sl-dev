@@ -16,6 +16,7 @@ import { loginFormDefaultValues, loginFormSchema, LoginFormSchemaValues } from "
 import { Loader2 } from "lucide-react"
 import { AuthContext } from "@/context/auth.context"
 import { apiLogin } from "@/api/api"
+import { verifyUser } from "@/api/api"
 
 function handleLoginError(errorMessage: string): void {
     toast({
@@ -28,6 +29,18 @@ function handleLoginError(errorMessage: string): void {
         ),
     });
 }
+
+async function pushDataLayer(user?: string): Promise<void> {
+    window.dataLayerSL = window.dataLayerSL || [];
+    window.dataLayerSL.push(
+      "login", JSON.stringify(user)
+
+      // event: "smartlink_" + data.sl_name,
+      // action: "create",
+      // label: generateDataLayerLabel(data),
+
+    );
+  }
 
 export function LoginForm() {
     const form = useForm<LoginFormSchemaValues>({
@@ -44,8 +57,10 @@ export function LoginForm() {
         if (authContext) {
             setLoading(true);
             try {
-                const response = await apiLogin(data);
-                authContext.setUser(response.data);
+                await apiLogin(data);
+                const user = await verifyUser();
+                authContext.setUser(user);
+                pushDataLayer(user?.username);
                 setLoading(false);
             } catch (error) {
                 if (error) {

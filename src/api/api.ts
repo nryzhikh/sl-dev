@@ -37,8 +37,7 @@ export const verifyUser = async () => {
 }
 
 
-export const apiGetStats = async (startIndex: number, count: number, sortField: string = "updated_at", sortOrder: string = "desc", search?: { term: string, fields: string[] }
-) => {
+export const apiGetStats = async (startIndex: number, count: number, sortField: string = "updated_at", sortOrder: string = "desc", searchTerm?: string) => {
   try {
     const response = await api.get('smartlinks/stats', {
       params: {
@@ -46,7 +45,7 @@ export const apiGetStats = async (startIndex: number, count: number, sortField: 
         count,
         sortField,
         sortOrder,
-        search: search ? { term: search.term, fields: search.fields.join(',') } : undefined,
+        searchTerm,
         timestamp: Date.now(),
       },
     });
@@ -71,7 +70,6 @@ export const apiGetDetails = async (sl_name: string) => {
 export const apiGetHistory = async (sl_name: string) => {
   try {
     const response = await api.get(`smartlinks/${sl_name}/history`)
-    console.log(response.data);
     return JSON.parse(JSON.stringify(response.data), nullToEmptyString);
   } catch (error) {
     console.error("An error occurred:", error);
@@ -131,7 +129,7 @@ export const apiSubmitFormData = async (formData: SmartlinkFormValues) => {
     return response.data;
   } catch (error) {
     if (error instanceof Error) {
-      console.error("An error occurred:", error.message);
+      console.error("An error occurred:", error);
     } else {
       console.error("An error occurred:", error);
     }

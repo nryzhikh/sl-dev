@@ -46,6 +46,8 @@ import OgSection from "./sections/OgSection";
 import IosSection from "./sections/IosSection";
 import AndroidSection from "./sections/AndroidSection";
 import { AuthContext } from "@/context/auth.context"
+import { RefetchContext } from "@/context/refetch.context"
+import FormInputWithPlaceholder from "./fields/FormInputWithPlaceholder";
 
 
 
@@ -69,26 +71,26 @@ export function SmartlinkForm({
   const [slNames, setSlNames] = useState<string[]>([]);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<React.ReactNode>();
-
-
   const authContext = useContext(AuthContext);
+  const { triggerRefetch } = useContext(RefetchContext);
 
+
+  const fetchSlNames = async () => {
+    try {
+      setSlNames(await apiGetSlNames())
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: (error instanceof Error) ? error.message : "Ошибка при загрузке списка смартлинков",
+      });
+    }
+  };
 
   useEffect(() => {
-    const fetchSlNames = async () => {
-      try {
-        setSlNames(await apiGetSlNames())
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Ошибка",
-          description: (error instanceof Error) ? error.message : "Ошибка при загрузке списка смартлинков",
-        });
-      }
-    };
-
     fetchSlNames();
   }, []);
+
 
   const showSuccessAlert = () => {
     setIsAlertOpen(true);
@@ -275,7 +277,6 @@ export function SmartlinkForm({
     try {
       setLoading(true);
       const cleanData = cleanUpData(data);
-      console.log(cleanData);
 
 
       if (isFromTable) {
@@ -284,7 +285,7 @@ export function SmartlinkForm({
         await apiSubmitFormData(cleanData);
       }
 
-      await pushDataLayer(cleanData);
+      await pushDataLayer(cleanData, isFromTable, authContext?.user?.username);
 
       const newSubmitedSl = `sberbank.com/sms/${data.sl_name}`;
 
@@ -295,13 +296,15 @@ export function SmartlinkForm({
       }
       showSuccessAlert();
     } catch (error) {
-      if (error instanceof Error) {
-        handleSubmissionError(error.message);
+      if (error instanceof Error && (error as any).response) {
+        handleSubmissionError((error as any).response.data.error);
         setLoading(false);
       }
     } finally {
-      setLoading(false);
+      fetchSlNames();
+      triggerRefetch();
       form.reset(defaultValues);
+      setLoading(false);
     }
 
   }
@@ -363,22 +366,17 @@ export function SmartlinkForm({
     );
   }
 
-  async function pushDataLayer(data: SmartlinkFormValues): Promise<void> {
+  async function pushDataLayer(data: SmartlinkFormValues, isFromTable: boolean, username?: string): Promise<void> {
     window.dataLayerSL = window.dataLayerSL || [];
     window.dataLayerSL.push(
-      "create", generateDataLayerLabel(data)
+      !isFromTable ? "create" : "update",
+       JSON.stringify(data), 
+       JSON.stringify(username)
 
       // event: "smartlink_" + data.sl_name,
       // action: "create",
       // label: generateDataLayerLabel(data),
 
-    );
-  }
-
-  function generateDataLayerLabel(data: SmartlinkFormValues): string {
-    const stringData = JSON.stringify(data);
-    return (
-      stringData
     );
   }
 
@@ -401,11 +399,11 @@ export function SmartlinkForm({
             render={({ field, fieldState }) => (
               <>
                 {!isFromTable && (
-                  <FormInput
+                  <FormInputWithPlaceholder
                     field={field}
                     fieldState={fieldState}
                     label="Уникальное имя"
-                    placeholder="пример: name_abc"
+                    placeholder="sberbank.com/sms/"
                     tooltip="Уникальное имя — это часть URL-адреса Например, в ссылке sberbank.com/sms/main именем является main. В том числе имя назначается как аналитический параметр (например, в external_source) для сбора статистики в системах аналитики ClickStream и др."
                   />
                 )}

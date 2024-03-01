@@ -39,6 +39,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { useContext } from 'react';
+import { RefetchContext } from '@/context/refetch.context';
 
 
 type Sessions = {
@@ -75,12 +77,12 @@ function useDebounce(value: any, delay: number) {
     return debouncedValue;
 }
 
-const searchFieldsMapping = {
-    "sl_name": "sl_name",
-    "android_dp, android_app": "android_dp, android_app",
-    "ios_dp, ios_apps_dp": "ios_dp, ios_apps_dp",
-    "web_link_desk": "web_link_desk",
-};
+// const searchFieldsMapping = {
+//     "sl_name": "sl_name",
+//     "android_dp, android_app": "android_dp, android_app",
+//     "ios_dp, ios_apps_dp": "ios_dp, ios_apps_dp",
+//     "web_link_desk": "web_link_desk",
+// };
 
 
 const DataTable = () => {
@@ -91,19 +93,21 @@ const DataTable = () => {
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] = React.useState<{ [key: string]: boolean; }>({ "created_at": false });
     const [searchTerm, setSearchTerm] = React.useState('');
-    const [searchFields, setSearchFields] = React.useState(new Set());
+    // const [searchFields, setSearchFields] = React.useState(new Set());
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
-    console.log(searchFields)
+    const { refetchTrigger } = useContext(RefetchContext);
 
-    const handleToggleSearchFields = (field: string) => {
-        const newSearchFields = new Set(searchFields);
-        if (newSearchFields.has(field)) {
-          newSearchFields.delete(field);
-        } else {
-          newSearchFields.add(field);
-        }
-        setSearchFields(newSearchFields);
-      };
+    // console.log(searchFields)
+
+    // const handleToggleSearchFields = (field: string) => {
+    //     const newSearchFields = new Set(searchFields);
+    //     if (newSearchFields.has(field)) {
+    //       newSearchFields.delete(field);
+    //     } else {
+    //       newSearchFields.add(field);
+    //     }
+    //     setSearchFields(newSearchFields);
+    //   };
 
 
     //react-query has a useInfiniteQuery hook that is perfect for this use case
@@ -115,7 +119,7 @@ const DataTable = () => {
                 const sortField = sorting.length ? sorting[0].id : undefined;
                 const sortOrder = sorting.length ? (sorting[0].desc ? 'desc' : 'asc') : undefined;
                 const fetchedData = await apiGetStats(start, fetchSize, sortField, sortOrder, debouncedSearchTerm);
-                console.log(fetchedData);
+                console.log(fetchedData)
                 return fetchedData;
             },
             initialPageParam: 0,
@@ -153,6 +157,11 @@ const DataTable = () => {
             refetch();
         }
     }, [debouncedSearchTerm, refetch]);
+
+    React.useEffect(() => {
+        refetch();
+      }, [refetchTrigger]);
+
 
 
 
@@ -231,9 +240,8 @@ const DataTable = () => {
 
     const debouncedFetchMore = React.useCallback(debounce(fetchMoreOnBottomReached, 100), [fetchMoreOnBottomReached]);
 
-
-
     return (
+        
         <div className="rounded-md overflow-auto" style={{ padding: "0.5rem" }}>
             <div className="flex items-center justify-between pb-4 space-x-3" >
                 <div className="flex flex-1 items-center space-x-2">
@@ -244,7 +252,7 @@ const DataTable = () => {
                         onChange={(event) => setSearchTerm(event.target.value)}
                         className="max-w-sm"
                     />
-                    <DropdownMenu>
+                    {/* <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="ml-auto">
                                 Поля <ChevronDownIcon className="ml-2 h-4 w-4" />
@@ -261,7 +269,7 @@ const DataTable = () => {
                                 </DropdownMenuCheckboxItem>
                             ))}
                         </DropdownMenuContent>
-                    </DropdownMenu>
+                    </DropdownMenu> */}
                     <Button
                         variant="outline"
                         className="ml-auto"

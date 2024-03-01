@@ -6,12 +6,15 @@ import App from "./App";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./components/login/LoginPage";
+import { RefetchProvider } from '@/context/refetch.context';
+
 
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AuthProvider>
+      <RefetchProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage/>} />
@@ -20,6 +23,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           </Route>
         </Routes>
       </BrowserRouter>
+      </RefetchProvider>
     </AuthProvider>
   </React.StrictMode>
 );

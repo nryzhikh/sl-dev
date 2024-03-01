@@ -41,9 +41,9 @@ const emptyData = () => {
 const fillMissingDates = (inputData: { date: string, sessions: number }[]) => {
     const data: { date: string, sessions: number }[] = [];
     const today = new Date();
-    today.setDate(today.getDate() - 2)
-    const startDate = new Date();
-    startDate.setDate(today.getDate() - 5);
+    today.setDate(today.getDate() - 1);
+    const startDate = new Date(today.getTime());
+    startDate.setDate(today.getDate() - 6);
 
     for (let d = startDate; d <= today; d.setDate(d.getDate() + 1)) {
         const formattedDate = d.toISOString().split('T')[0];
@@ -118,22 +118,19 @@ const columns: ColumnDef<TableData>[] = [
         header: "Статус",
         cell: info => {
             const status = info.getValue() as number;
-            const url = info.row.original.url;
-            
+            const url = 'https://sberbank.com/sms/' + info.row.original.sl_name;
 
-            return (
-                <div>
-                    {status > 1000 ? (
+            function renderStatus(status: number, url: string) {
+                if (status > 98) {
+                    return (
                         <div className="flex justify-center items-center gap-2">
-                        <div style={{ height: '8px', width: '8px', backgroundColor: 'red', borderRadius: '50%' }}></div>
-                        <span className="text-sm">Ошибка</span>
-                    </div>
-                    ) : !status ? (
-                        <div className="flex justify-center items-center gap-2">
-                        <div style={{ height: '8px', width: '8px', backgroundColor: 'red', borderRadius: '50%' }}></div>
-                        <span className="text-sm">На модерации</span>
-                    </div>
-                    ) : status > 199 && status < 400 ? (
+                            <div style={{ height: '8px', width: '8px', backgroundColor: 'red', borderRadius: '50%' }}></div>
+                            <span className="text-sm">Ошибка</span>
+                        </div>
+                    );
+
+                } else if (status >= 30 && status < 40) {
+                    return (
                         <div className="flex justify-center items-center gap-2">
                             <div style={{ height: '8px', width: '8px', backgroundColor: "#10b981", borderRadius: '50%' }}></div>
                             <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center underline">
@@ -141,14 +138,26 @@ const columns: ColumnDef<TableData>[] = [
                                 <Link2Icon className="mb-1 w-3 h-3 " />
                             </a>
                         </div>
-                    ) : (
+                    );
+                } else if (status >= 0 && status < 20) {
+                    return (
                         <div className="flex justify-center items-center gap-2">
                             <div style={{ height: '8px', width: '8px', backgroundColor: 'red', borderRadius: '50%' }}></div>
                             <span className="text-sm">На модерации</span>
                         </div>
-                    )}
-                </div>
-            )
+                    );
+                } else if (status >= 20 && status < 30) {
+                    return (
+                        <div className="flex justify-center items-center gap-2">
+                            <div style={{ height: '8px', width: '8px', backgroundColor: 'orange', borderRadius: '50%' }}></div>
+                            <span className="text-sm">На изменении</span>
+                        </div>
+                    );
+                } 
+            }
+
+
+            return <div>{renderStatus(status, url)}</div>
         }
     },
 
@@ -182,12 +191,11 @@ const columns: ColumnDef<TableData>[] = [
             return (
                 <div className="flex items-center ">
                     <SparkAreaChart
-                        data={Array.isArray(info.row.original.sessions) ? fillMissingDates(info.row.original.sessions) : emptyData()}
+                        data={info.row.original.sessions ? fillMissingDates(info.row.original.sessions) : emptyData()}
                         categories={["sessions"]}
                         index={"date"}
                         colors={["green", "#10b981"]}
                         className="h-10 w-36 text-sm text-muted-foreground"
-                        noDataText="н/д"
                         curveType="linear"
                         showAnimation={true} // Use isNew property to control animation
                         animationDuration={300}
