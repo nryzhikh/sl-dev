@@ -25,7 +25,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CaretSortIcon } from "@radix-ui/react-icons";
+import { CaretSortIcon, GearIcon } from "@radix-ui/react-icons";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     ReloadIcon,
@@ -41,7 +41,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useContext } from 'react';
 import { RefetchContext } from '@/context/refetch.context';
-// import { useEffect } from 'react';
+// import { Loader2Icon } from 'lucide-react'
 
 
 type Sessions = {
@@ -86,14 +86,33 @@ function useDebounce(value: any, delay: number) {
     return debouncedValue;
 }
 
-// const searchFieldsMapping = {
-//     "sl_name": "sl_name",
-//     "android_dp": "android_dp, android_apps_dp",
-//     "android_app": "android_app",
-//     "ios_dp": "ios_dp",
-//     "ios_apps_dp": "ios_apps_dp",
-//     "web_link_desk": "web_link_desk",
-// };
+const searchFieldsMapping = [
+    {
+        id: "sl_name",
+        label: "sl_name",
+    },
+    {
+        id: "android_dp",
+        label: "android_dp",
+    },
+    {
+        id: "android_app",
+        label: "android_app",
+    },
+    {
+        id: "ios_dp",
+        label: "ios_dp",
+    },
+    {
+        id: "ios_apps_dp",
+        label: "ios_apps_dp",
+    },
+    {
+        id: "web_link_desk",
+        label: "web_link_desk",
+    },
+
+] as const
 
 
 const DataTable = () => {
@@ -106,28 +125,28 @@ const DataTable = () => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
     const { refetchTrigger } = useContext(RefetchContext);
+    const [searchFieldsState, setSearchFieldsState] = React.useState<string[]>(searchFieldsMapping.map(item => item.id));
+    const debouncedSearchFields = useDebounce(searchFieldsState, 500)
 
 
-    // const handleToggleSearchFields = (field: string) => {
-    //     const newSearchFields = new Set(searchFields);
-    //     if (newSearchFields.has(field)) {
-    //         newSearchFields.delete(field);
-    //     } else {
-    //         newSearchFields.add(field);
-    //     }
-    //     setSearchFields(newSearchFields);
-    // };
+    const handleSearchfieldsChange = (checked: boolean, itemId: string) => {
+        if (checked) {
+            setSearchFieldsState(prevFields => [...prevFields, itemId]);
+        } else {
+            setSearchFieldsState(prevFields => prevFields.filter(field => field !== itemId));
+        }
+    }
 
 
-    //react-query has a useInfiniteQuery hook that is perfect for this use case
-    const { data, fetchNextPage, isFetching, refetch, isRefetching } =
+    const { data, fetchNextPage, isFetching, isLoading, refetch, isRefetching } =
         useInfiniteQuery({
             queryKey: ['records', sorting, debouncedSearchTerm],
             queryFn: async ({ pageParam = 0 }) => {
                 const start = pageParam * fetchSize;
                 const sortField = sorting.length ? sorting[0].id : undefined;
                 const sortOrder = sorting.length ? (sorting[0].desc ? 'desc' : 'asc') : undefined;
-                const fetchedData = await apiGetStats(start, fetchSize, sortField, sortOrder, debouncedSearchTerm);
+                const fetchedData = await apiGetStats(start, fetchSize, sortField, sortOrder, debouncedSearchTerm, debouncedSearchTerm ? debouncedSearchFields.join(',') : undefined);
+                console.log(fetchedData);
                 return fetchedData;
             },
             initialPageParam: 0,
@@ -136,6 +155,7 @@ const DataTable = () => {
             placeholderData: keepPreviousData,
         });
 
+    console.log("Fetching", isFetching, "Refetching", isRefetching, "Loading", isLoading);
 
     //flatten the array of arrays from the useInfiniteQuery hook
     const flatData = React.useMemo(
@@ -165,7 +185,7 @@ const DataTable = () => {
         if (debouncedSearchTerm !== '') {
             refetch();
         }
-    }, [debouncedSearchTerm, refetch]);
+    }, [debouncedSearchTerm, debouncedSearchFields]);
 
     React.useEffect(() => {
         refetch();
@@ -177,9 +197,10 @@ const DataTable = () => {
                 refetch();
             }
         }, 20000); // Refetch every 10 seconds
-    
+
         return () => clearInterval(intervalId);
     }, [refetch]);
+
 
 
 
@@ -261,14 +282,39 @@ const DataTable = () => {
     }
 
 
-
     const debouncedFetchMore = React.useCallback(debounce(fetchMoreOnBottomReached, 100), [fetchMoreOnBottomReached]);
+
 
     return (
 
         <div className="rounded-md overflow-auto" style={{ padding: "0.5rem" }}>
             <div className="flex items-center justify-between pb-4 space-x-3" >
                 <div className="flex flex-1 items-center space-x-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger>
+                            <Button variant="outline" className="ml-auto">
+                                <GearIcon className=" h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            className='space-y-1 max-w-[200px]'
+
+                        >
+                            {searchFieldsMapping.map((item) => (
+                                <div className="flex gap-2">
+                                    <DropdownMenuCheckboxItem
+                                        onSelect={(e) => e.preventDefault()}
+                                        key={item.id}
+                                        checked={searchFieldsState.includes(item.id)}
+                                        onCheckedChange={(checked: boolean) => handleSearchfieldsChange(checked, item.id)}
+                                    >
+                                        {item.label}
+                                    </DropdownMenuCheckboxItem>
+
+                                </div>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                     <Input
                         placeholder="Поиск..."
@@ -276,29 +322,12 @@ const DataTable = () => {
                         onChange={(event) => setSearchTerm(event.target.value)}
                         className="max-w-sm"
                     />
-                    {/* <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="ml-auto">
-                                Поля <ChevronDownIcon className="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {Object.keys(searchFieldsMapping).map((fieldKey) => (
-                                <DropdownMenuCheckboxItem
-                                    key={fieldKey}
-                                    checked={searchFields.has(fieldKey)}
-                                    onCheckedChange={(value) => handleToggleSearchFields(fieldKey)}
-                                >
-                                    {searchFieldsMapping[fieldKey as keyof typeof searchFieldsMapping]}
-                                </DropdownMenuCheckboxItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu> */}
+
                     <Button
                         variant="outline"
                         className="ml-auto"
                         onClick={() => {
-                            if (!rowSelection) {
+                            if (!rowSelection || Object.keys(rowSelection).length === 0) {
                                 return;
                             }
                             apiDownloadFiles(getDownloadSlNames());
@@ -341,6 +370,10 @@ const DataTable = () => {
                 </Button>
             </div>
             <div className=" overflow-hidden">
+
+
+
+
                 <div
                     className=" block max-w-full border rounded-sm"
                     onScroll={e => debouncedFetchMore(e.target as HTMLDivElement)}
@@ -401,49 +434,52 @@ const DataTable = () => {
                                 </TableRow>
                             ))}
                         </TableHeader>
+                        
                         <TableBody
                             style={{
                                 height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
                                 position: 'relative', //needed for absolute positioning of rows
                             }}
                         >
-                            {rowVirtualizer.getVirtualItems().map(virtualRow => {
-                                const row = rows[virtualRow.index] as Row<TableData>
-                                return (
-                                    <TableRow
-                                        data-index={virtualRow.index} //needed for dynamic row height measurement
-                                        ref={node => rowVirtualizer.measureElement(node)} //measure dynamic row height
-                                        key={row.id}
-                                        style={{
-                                            position: 'absolute',
-                                            transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                                        }}
-                                        className='flex justify-between w-full'
-
-                                    >
-                                        {row.getVisibleCells().map(cell => {
-                                            return (
-                                                <TableCell
-                                                    key={cell.id}
-                                                    style={{
-                                                        width: cell.column.getSize(),
-                                                    }}
-                                                    className='ml-1 py-1 flex items-center justify-start'
-                                                >
-                                                    {isFetching && !isRefetching ? (
-                                                        <Skeleton className="h-6 m-2 w-full" />
-                                                    ) : (
-                                                        flexRender(cell.column.columnDef.cell, cell.getContext())
-                                                    )}
 
 
-                                                </TableCell>
-                                            )
-                                        })}
+                                {rowVirtualizer.getVirtualItems().map(virtualRow => {
+                                    const row = rows[virtualRow.index] as Row<TableData>
+                                    return (
+                                        <TableRow
+                                            data-index={virtualRow.index} //needed for dynamic row height measurement
+                                            ref={node => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                                            key={row.id}
+                                            style={{
+                                                position: 'absolute',
+                                                transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                                            }}
+                                            className='flex justify-between w-full'
 
-                                    </TableRow>
-                                )
-                            })}
+                                        >
+                                            {row.getVisibleCells().map(cell => {
+                                                return (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        style={{
+                                                            width: cell.column.getSize(),
+                                                        }}
+                                                        className='ml-1 py-1 flex items-center justify-start'
+                                                    >
+                                                        {isFetching ? (
+                                                            <Skeleton className="h-6 m-2 w-full" />
+                                                        ) : (
+                                                            flexRender(cell.column.columnDef.cell, cell.getContext())
+                                                        )}
+
+
+                                                    </TableCell>
+                                                )
+                                            })}
+
+                                        </TableRow>
+                                    )
+                                })}
                         </TableBody>
                     </table>
                 </div>
