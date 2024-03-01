@@ -58,6 +58,14 @@ export type TableData = {
     isNew: boolean;
     url: string;
     url_status_code: number;
+    createdByUser: {
+        username: string;
+        user_id: string;
+    };
+    updatedByUser: {
+        username: string;
+        user_id: string;
+    };
 };
 
 const fetchSize = 50
@@ -94,13 +102,11 @@ const DataTable = () => {
 
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [rowSelection, setRowSelection] = React.useState({})
-    const [columnVisibility, setColumnVisibility] = React.useState<{ [key: string]: boolean; }>({ "created_at": false });
+    const [columnVisibility, setColumnVisibility] = React.useState<{ [key: string]: boolean; }>({ "created_at": false, "createdByUser.username": false });
     const [searchTerm, setSearchTerm] = React.useState('');
-    // const [searchFields, setSearchFields] = React.useState(new Set());
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
     const { refetchTrigger } = useContext(RefetchContext);
 
-    // console.log(searchFields)
 
     // const handleToggleSearchFields = (field: string) => {
     //     const newSearchFields = new Set(searchFields);
@@ -122,7 +128,6 @@ const DataTable = () => {
                 const sortField = sorting.length ? sorting[0].id : undefined;
                 const sortOrder = sorting.length ? (sorting[0].desc ? 'desc' : 'asc') : undefined;
                 const fetchedData = await apiGetStats(start, fetchSize, sortField, sortOrder, debouncedSearchTerm);
-                console.log(fetchedData)
                 return fetchedData;
             },
             initialPageParam: 0,
@@ -130,6 +135,7 @@ const DataTable = () => {
             refetchOnWindowFocus: false,
             placeholderData: keepPreviousData,
         });
+
 
     //flatten the array of arrays from the useInfiniteQuery hook
     const flatData = React.useMemo(

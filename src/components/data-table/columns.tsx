@@ -86,6 +86,20 @@ const columns: ColumnDef<TableData>[] = [
         ),
     },
     {
+        accessorKey: "createdByUser.username",
+        id: "createdByUser.username",
+        size: 200,
+        header: "Владелец",
+        cell: info => {
+            const username = info.row.original.createdByUser.username;
+            return (
+                <div className="text-xs">
+                    {username}
+                </div>
+            );
+        }
+    },
+    {
         accessorKey: "created_at",
         size: 80,
         header: "Создан",
