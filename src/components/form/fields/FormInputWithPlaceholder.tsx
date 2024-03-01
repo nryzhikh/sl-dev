@@ -31,6 +31,13 @@ const FormInputWithPlaceholder = ({
     const errorMessage = fieldState.error?.message;
     const [isFocused, setIsFocused] = useState(false);
 
+
+    const handlePlaceholderClick = () => {
+        setIsFocused(true);
+        const inputElement = document.getElementById(field.name);
+        inputElement?.focus();
+    };
+
     const handleFocus = () => {
         setIsFocused(true);
     };
@@ -63,6 +70,12 @@ const FormInputWithPlaceholder = ({
             >
                 <div
                     className="flex items-center rounded-l-md pl-3 text-sm text-muted-foreground min-w-0"
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        handlePlaceholderClick();
+                    }}
+                    
+
                 >
                     {placeholder}
                 </div>
